@@ -13,6 +13,8 @@ Geography_Baseline = arcpy.GetParameterAsText(2)
 Study_subject = arcpy.GetParameterAsText(3)
 Output_Folder_Location = arcpy.GetParameterAsText(4)
 
+arcpy.env.workspace = Parcels_folder
+
 arcpy.AddMessage(Parcels_folder)
 arcpy.AddMessage(CENACS_folder)
 
@@ -24,34 +26,28 @@ if not os.path.exists(Output_File_Location):
 
 # Find all Polygon feature classes in all File Geodatabases in Parcels_folder
 
-Parcels_list = []
-for gdb_path in arcpy.ListWorkspaces("*", "FileGDB"):
-    for fc_name in arcpy.ListFeatureClasses("*", "Polygon", gdb_path):
-        Parcels_list.append(os.path.join(gdb_path, fc_name))
-
-# Print the list of files for debugging purposes
-arcpy.AddMessage(f"Found {len(Parcels_list)} parcels files:")
+Parcels_list = arcpy.ListFeatureClasses()
 arcpy.AddMessage(Parcels_list)
 
 # Use the first 10 files in the list
 Parcels_list = Parcels_list[:10]
 
-# Print the list of files for debugging purposes
-arcpy.AddMessage(f"Using {len(Parcels_list)} parcels files:")
-arcpy.AddMessage(Parcels_list)
-
 # Assign the first 10 values to Parcels1, Parcels2, etc.
 for i in range(10):
     if len(Parcels_list) > i:
-        exec(f"Parcels{i+1} = '{Parcels_list[i]}'")
+        exec(f"parcels{i+1} = '{Parcels_list[i]}'")
 
+if len(Parcels_list) == 0:
+    print("No feature classes found in workspace:", CENACS_folder)
+else:
+    print("Found feature classes:")
+    for fc in Parcels_list:
+        print(fc)
 arcpy.AddMessage(Parcels_list)
 
 # Find all Polygon feature classes in all File Geodatabases in CENACS_folder
-CENACS_list = []
-for gdb_path in arcpy.ListWorkspaces("*", "FileGDB"):
-    for fc_name in arcpy.ListFeatureClasses("*", "Polygon", gdb_path):
-        CENACS_list.append(os.path.join(gdb_path, fc_name))
+arcpy.env.workspace = CENACS_folder
+CENACS_list = arcpy.ListFeatureClasses()
 
 # Print the list of files for debugging purposes
 arcpy.AddMessage(f"Found {len(CENACS_list)} CENACS files:")
@@ -60,20 +56,26 @@ arcpy.AddMessage(CENACS_list)
 # Use the first 10 files in the list
 CENACS_list = CENACS_list[:10]
 
-# Print the list of files for debugging purposes
-arcpy.AddMessage(f"Using {len(CENACS_list)} CENACS files:")
+if len(CENACS_list) == 0:
+    print("No feature classes found in workspace:", CENACS_folder)
+else:
+    print("Found feature classes:")
+    for fc in CENACS_list:
+        print(fc)
 arcpy.AddMessage(CENACS_list)
 
 
 # Assign the first 10 values to Parcels1, Parcels2, etc. and CENACS1, CENACS2, etc.
 for i in range(10):
     if len(Parcels_list) > i:
-        exec(f"Parcels{i+1} = '{Parcels_list[i]}'")
+        exec(f"parcels{i+1} = '{Parcels_list[i]}'")
     if len(CENACS_list) > i:
-        exec(f"CENACS{i+1} = '{CENACS_list[i]}'")
+        exec(f"cenacs{i+1} = '{CENACS_list[i]}'")
 
 arcpy.AddMessage(CENACS_list)
 arcpy.AddMessage(Parcels_list)
+arcpy.AddMessage(arcpy.ListWorkspaces())
+arcpy.AddMessage(arcpy.ListFeatureClasses())
 
 def createanalysisgeos(CENACS_list, Output_File_Location,Study_subject):
     studybuffer = os.path.join(Output_File_Location, "study_buffer")
