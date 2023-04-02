@@ -13,8 +13,6 @@ Geography_Baseline = arcpy.GetParameterAsText(2)
 Study_subject = arcpy.GetParameterAsText(3)
 Output_Folder_Location = arcpy.GetParameterAsText(4)
 
-arcpy.env.workspace = Parcels_folder
-
 arcpy.AddMessage(Parcels_folder)
 arcpy.AddMessage(CENACS_folder)
 
@@ -25,8 +23,8 @@ if not os.path.exists(Output_File_Location):
     os.makedirs(Output_File_Location)
 
 # Find all Polygon feature classes in all File Geodatabases in Parcels_folder
-
-Parcels_list = arcpy.ListFeatureClasses()
+arcpy.env.workspace = Parcels_folder
+Parcels_list = arcpy.ListFeatureClasses("*", "ALL", "parcels")
 arcpy.AddMessage(Parcels_list)
 
 # Use the first 10 files in the list
@@ -38,11 +36,11 @@ for i in range(10):
         exec(f"parcels{i+1} = '{Parcels_list[i]}'")
 
 if len(Parcels_list) == 0:
-    print("No feature classes found in workspace:", CENACS_folder)
+    arcpy.AddMessage("No feature classes found in workspace:", CENACS_folder)
 else:
-    print("Found feature classes:")
+    arcpy.AddMessage("Found feature classes:")
     for fc in Parcels_list:
-        print(fc)
+        arcpy.AddMessage(fc)
 arcpy.AddMessage(Parcels_list)
 
 # Find all Polygon feature classes in all File Geodatabases in CENACS_folder
@@ -57,11 +55,11 @@ arcpy.AddMessage(CENACS_list)
 CENACS_list = CENACS_list[:10]
 
 if len(CENACS_list) == 0:
-    print("No feature classes found in workspace:", CENACS_folder)
+    arcpy.AddMessage("No feature classes found in workspace:", CENACS_folder)
 else:
-    print("Found feature classes:")
+    arcpy.AddMessage("Found feature classes:")
     for fc in CENACS_list:
-        print(fc)
+        arcpy.AddMessage(fc)
 arcpy.AddMessage(CENACS_list)
 
 
