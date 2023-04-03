@@ -98,6 +98,8 @@ def createanalysisgeos(CENACS_list, Output_File_Location,Study_subject):
 
 ##############Prep the CENACS######################
 def modcenacs(CENACS_list, Output_File_Location):
+    # Save current workspace
+    orig_workspace = arcpy.env.workspace
     # Set output workspace environment
     arcpy.env.workspace = Output_File_Location
 
@@ -122,14 +124,16 @@ def modcenacs(CENACS_list, Output_File_Location):
         out_name = cenacs + ".shp"  # Or whatever filename you want to use
         arcpy.env.overwriteOutput = True
         out_fc = arcpy.CopyFeatures_management(cenacs, os.path.join(out_path, out_name))
+        arcpy.env.workspace = orig_workspace
 
 
 
-def modparcels(Parcels_list, Output_File_Location):
+def modparcels(Parcels_list, Output_File_Location, CENACS_list):
     # Define where clauses to select residential and nonresidential parcels
     where_clauses = ["LU_RES = 'YES'", "NOT LU_RES = 'YES'"]
 
-    for i, parcels in enumerate(Parcels_list):
+    for parcels in Parcels_list:
+        arcpy.SelectLayerByLocation_management(parcels, 'HAVE_THEIR_CENTER_IN', Geography_Baseline)
         # Loop over the where clauses to select residential and nonresidential parcels
         for j, where_clause in enumerate(where_clauses):
             arcpy.SelectLayerByAttribute_management(parcels, "NEW_SELECTION", where_clause)
@@ -155,7 +159,7 @@ def modparcels(Parcels_list, Output_File_Location):
                 arcpy.TableToTable_conversion(out_feature_class2, Output_File_Location, os.path.basename(out_table))
 
         # Print a message for each processed feature class
-        print(f"Processed {os.path.basename(parcels)} ({i + 1}/{len(Parcels_list)})")
+        arcpy.AddMessage(f"Processed {os.path.basename(parcels)} ({i + 1}/{len(Parcels_list)})")
 
 
 
@@ -244,7 +248,7 @@ def indexconstructor(indicators_table, Output_File_Location):
 
 createanalysisgeos(CENACS_list, Output_File_Location, Study_subject)
 modcenacs(CENACS_list, Output_File_Location)
-modparcels(Parcels_list, Output_File_Location)
+modparcels(Parcels_list, Output_File_Location, CENACS_list)
 datacalcandpctchg(CENACS_list, Output_File_Location)
 indicators_table = datacalcandpctchg(Output_File_Location, CENACS_list)
 indexconstructor(indicators_table, Output_File_Location)
