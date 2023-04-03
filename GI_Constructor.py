@@ -72,8 +72,7 @@ for i in range(10):
 
 arcpy.AddMessage(CENACS_list)
 arcpy.AddMessage(Parcels_list)
-arcpy.AddMessage(arcpy.ListWorkspaces())
-arcpy.AddMessage(arcpy.ListFeatureClasses())
+
 
 def createanalysisgeos(CENACS_list, Output_File_Location,Study_subject):
     studybuffer = os.path.join(Output_File_Location, "study_buffer")
@@ -133,6 +132,7 @@ def modparcels(Parcels_list, Output_File_Location, CENACS_list):
     where_clauses = ["LU_RES = 'YES'", "NOT LU_RES = 'YES'"]
 
     for parcels in Parcels_list:
+        arcpy.AddMessage(parcels)
         arcpy.SelectLayerByLocation_management(parcels, 'HAVE_THEIR_CENTER_IN', Geography_Baseline)
         # Loop over the where clauses to select residential and nonresidential parcels
         for j, where_clause in enumerate(where_clauses):
