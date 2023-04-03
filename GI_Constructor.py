@@ -24,7 +24,7 @@ if not os.path.exists(Output_File_Location):
 
 # Find all Polygon feature classes in all File Geodatabases in Parcels_folder
 arcpy.env.workspace = Parcels_folder
-Parcels_list = arcpy.ListFeatureClasses("*", "ALL", "parcels")
+Parcels_list = arcpy.ListFeatureClasses()
 arcpy.AddMessage(Parcels_list)
 
 # Use the first 10 files in the list
@@ -36,7 +36,7 @@ for i in range(10):
         exec(f"parcels{i+1} = '{Parcels_list[i]}'")
 
 if len(Parcels_list) == 0:
-    arcpy.AddMessage("No feature classes found in workspace:", CENACS_folder)
+    arcpy.AddMessage("No feature classes found in workspace")
 else:
     arcpy.AddMessage("Found feature classes:")
     for fc in Parcels_list:
@@ -55,7 +55,7 @@ arcpy.AddMessage(CENACS_list)
 CENACS_list = CENACS_list[:10]
 
 if len(CENACS_list) == 0:
-    arcpy.AddMessage("No feature classes found in workspace:", CENACS_folder)
+    arcpy.AddMessage("No feature classes found in workspace")
 else:
     arcpy.AddMessage("Found feature classes:")
     for fc in CENACS_list:
@@ -85,13 +85,12 @@ def createanalysisgeos(CENACS_list, Output_File_Location,Study_subject):
 
     for cenacs in CENACS_list:
         # Select by location to select block groups within geography
-        arcpy.SelectLayerByLocation_management(cenacs, "INTERSECT", Geography_Baseline,
-                                               "NEW_SELECTION")
+        arcpy.SelectLayerByLocation_management(cenacs, "INTERSECT", Geography_Baseline)
         # Save features selected by Geography_Baseline to output location
         out_feature_class1 = os.path.join(Output_File_Location, f"{cenacs}_baseline.shp")
         arcpy.CopyFeatures_management(cenacs, out_feature_class1)
         # Select by Location: intersect 0.5 mile buffer:
-        arcpy.SelectLayerByLocation_management(cenacs, "INTERSECT", studybuffer, "NEW_SELECTION")
+        arcpy.SelectLayerByLocation_management(cenacs, "INTERSECT", studybuffer)
 
         # Save features selected by 0.5 mile buffer to output location
         studycenacs = os.path.join(Output_File_Location, f"{cenacs}_study_buffer.shp")
@@ -99,6 +98,9 @@ def createanalysisgeos(CENACS_list, Output_File_Location,Study_subject):
 
 ##############Prep the CENACS######################
 def modcenacs(CENACS_list, Output_File_Location):
+    # Set output workspace environment
+    arcpy.env.workspace = Output_File_Location
+
     # Define field names and data types
     field1 = "PCT_MIN"
     field2 = "PCT_ED_COLLEGE"
@@ -118,7 +120,8 @@ def modcenacs(CENACS_list, Output_File_Location):
         # Save modified dataset to output location
         out_path = Output_File_Location
         out_name = cenacs + ".shp"  # Or whatever filename you want to use
-        out_fc = arcpy.CopyFeatures_management(cenacs, os.path.join(out_path, out_name), overwrite_output=True)
+        arcpy.env.overwriteOutput = True
+        out_fc = arcpy.CopyFeatures_management(cenacs, os.path.join(out_path, out_name))
 
 
 
