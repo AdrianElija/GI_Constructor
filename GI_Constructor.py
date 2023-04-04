@@ -10,14 +10,7 @@ Parcels_folder = arcpy.GetParameterAsText(0)
 CENACS_folder = arcpy.GetParameterAsText(1)
 Geography_Baseline = arcpy.GetParameterAsText(2)
 Study_subject = arcpy.GetParameterAsText(3)
-Output_Folder_Location = arcpy.GetParameterAsText(4)
-
-# Create output folder if it doesn't exist
-new_folder_name = "New_run"
-Output_File_Location = os.path.join(Output_Folder_Location, new_folder_name)
-if not os.path.exists(Output_File_Location):
-    os.makedirs(Output_File_Location)
-
+Output_File_Location = arcpy.GetParameterAsText(4)
 # Get list of feature classes in the input Geodatabase from Parcels_folder
 arcpy.env.workspace = Parcels_folder
 Parcels_list = arcpy.ListFeatureClasses()
@@ -103,7 +96,13 @@ def modparcels(Parcels_list, Output_File_Location, CENACS_list):
             for CENACS in CENACS_list:
                 in_polygons = CENACS
                 in_sum_features = out_feature_class  # Use the selected parcel layer
-                out_feature_class2 = os.path.join(Output_File_Location, f"\\{os.path.basename(parcels)}_{'residential' if j == 0 else 'nonresidential'}_summary")
+                out_feature_class2 = os.path.join(Output_File_Location, f"{os.path.basename(parcels)}_{'residential' if j == 0 else 'nonresidential'}_summary")
+                out_feature_class2 = arcpy.ValidateTableName(out_feature_class2, Output_File_Location)
+                out_feature_class2 = arcpy.CreateUniqueName(out_feature_class2, Output_File_Location)
+                out_feature_class2 = arcpy.CreateFeatureclass_management(Output_File_Location,
+                                                                         os.path.basename(out_feature_class2),
+                                                                         "POLYGON", spatial_reference=CENACS,
+                                                                         has_m="DISABLED", has_z="DISABLED")
                 sum_fields = ["JV"]
                 arcpy.SummarizeWithin_analysis(in_polygons, in_sum_features, out_feature_class2, "KEEP_ALL", f"{sum_fields[0]} SUM;{sum_fields[0]} MEAN")
                 # Rename and move the output summary table to the desired location
