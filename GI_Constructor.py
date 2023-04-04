@@ -106,7 +106,8 @@ def modparcels(Parcels_list, Output_File_Location, CENACS_list):
                 sum_fields = ["JV"]
                 arcpy.SummarizeWithin_analysis(in_polygons, in_sum_features, out_feature_class2, "KEEP_ALL", f"{sum_fields[0]} SUM;{sum_fields[0]} MEAN")
                 # Rename and move the output summary table to the desired location
-                out_table = os.path.join(Output_File_Location, f"\\{os.path.basename(parcels)}_{'residential' if j == 0 else 'nonresidential'}_JV_summary.dbf")
+                out_table = os.path.join(Output_File_Location,
+                                         f"\\{os.path.basename(parcels)}_{'residential' if j == 0 else 'nonresidential'}_JV_summary.dbf")
                 arcpy.TableToTable_conversion(out_feature_class2, Output_File_Location, os.path.basename(out_table))
         # Print a message for each processed feature class
         arcpy.AddMessage(f"Processed {os.path.basename(parcels)})")
