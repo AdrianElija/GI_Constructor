@@ -106,9 +106,9 @@ def modparcels(Parcels_list, Output_File_Location, CENACS_list):
                 sum_fields = ["JV"]
                 arcpy.SummarizeWithin_analysis(in_polygons, in_sum_features, out_feature_class2, "KEEP_ALL", f"{sum_fields[0]} SUM;{sum_fields[0]} MEAN")
                 # Rename and move the output summary table to the desired location
-                out_table = os.path.join(Output_File_Location,
-                                         f"\\{os.path.basename(parcels)}_{'residential' if j == 0 else 'nonresidential'}_JV_summary.dbf")
-                arcpy.TableToTable_conversion(out_feature_class2, Output_File_Location, os.path.basename(out_table))
+                # out_table = os.path.join(Output_File_Location,
+                #                          f"\\{os.path.basename(parcels)}_{'residential' if j == 0 else 'nonresidential'}_JV_summary.dbf")
+                # arcpy.TableToTable_conversion(out_feature_class2, Output_File_Location, os.path.basename(out_table))
         # Print a message for each processed feature class
         arcpy.AddMessage(f"Processed {os.path.basename(parcels)})")
 
@@ -119,7 +119,7 @@ def datacalcandpctchg(CENACS_list, Output_File_Location):
         ##Summary Statistics
         out_table = os.path.join(Output_File_Location, f"{os.path.basename(CENACS)}indicators_summary")
         # On Modded CENACS that now has the summarized JV values for each from parcels
-        arcpy.Statistics_analysis(CENACS, out_table, [["MEDHHINC", "MEAN"], ["Res_JV", "MEAN"], ["NonRes_JV", "MEAN"], ["PCT_MIN", "MEAN"], ["PCT_CollegeED", "MEAN"]])
+        arcpy.Statistics_analysis(CENACS, out_table, [["MEDHHINC", "MEAN"], ["Res_JV", "MEAN"], ["NonRes_JV", "MEAN"], ["PCT_MIN", "MEAN"], ["PCT_ED_COLLEGE", "MEAN"]])
 
         ## Calc percent change
         #Over 10 years (CENACS: 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
