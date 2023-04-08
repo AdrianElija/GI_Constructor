@@ -83,10 +83,12 @@ def modparcels(Parcels_list, Output_File_Location, CENACS_list):
     arcpy.AddMessage(arcpy.env.workspace)
     # Define where clauses to select residential and nonresidential parcels
     where_clauses = ["LU_RES = 'YES'", "NOT LU_RES = 'YES'"]
+    out_tables = []
     for parcels in Parcels_list:
         arcpy.AddMessage(parcels)
         arcpy.SelectLayerByLocation_management(parcels, 'HAVE_THEIR_CENTER_IN', Geography_Baseline)
         # Loop over the where clauses to select residential and nonresidential parcels
+        summary_tables = []
         for j, where_clause in enumerate(where_clauses):
             arcpy.SelectLayerByAttribute_management(parcels, "NEW_SELECTION", where_clause)
             # Save selected parcels to output location
@@ -105,12 +107,16 @@ def modparcels(Parcels_list, Output_File_Location, CENACS_list):
                                                                          has_m="DISABLED", has_z="DISABLED")
                 sum_fields = ["JV"]
                 arcpy.SummarizeWithin_analysis(in_polygons, in_sum_features, out_feature_class2, "KEEP_ALL", f"{sum_fields[0]} SUM;{sum_fields[0]} MEAN")
-                # Rename and move the output summary table to the desired location
-                # out_table = os.path.join(Output_File_Location,
-                #                          f"\\{os.path.basename(parcels)}_{'residential' if j == 0 else 'nonresidential'}_JV_summary.dbf")
-                # arcpy.TableToTable_conversion(out_feature_class2, Output_File_Location, os.path.basename(out_table))
-        # Print a message for each processed feature class
-        arcpy.AddMessage(f"Processed {os.path.basename(parcels)})")
+                # Append the output summary table to the list of summary tables for the current year
+                summary_tables.append(out_feature_class2)
+                # Append the summary tables for the current year to the list of output tables
+            out_tables.append(summary_tables)
+            # Print a message for each processed feature class
+            arcpy.AddMessage(f"Processed {os.path.basename(parcels)})")
+            # Flatten the list of output tables
+        out_tables = [table for year in out_tables for table in year]
+        # Return the list of output tables
+        return out_tables
 
 
 def datacalcandpctchg(CENACS_list, Output_File_Location):
@@ -195,7 +201,10 @@ def indexconstructor(indicators_table, Output_File_Location):
 
 modcenacs(CENACS_list, Output_File_Location)
 createanalysisgeos(CENACS_list, Output_File_Location, Study_subject)
-modparcels(Parcels_list, Output_File_Location, CENACS_list)
-datacalcandpctchg(CENACS_list, Output_File_Location)
+# Run the modparcels function to summarize parcel data by census block group
+parcel_summaries = modparcels(Parcels_list, Output_File_Location, CENACS_list)
+
+# Run the datacalcandpctchg function to calculate data changes and percentages
+datacalcandpctchg(parcel_summaries)
 indicators_table = datacalcandpctchg(Output_File_Location, CENACS_list)
 indexconstructor(indicators_table, Output_File_Location)
